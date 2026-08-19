@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>School Timeline Calculator 2026–2027</title>
+<style>
+  :root{
+    --bg:#f5f7fb;--card:#ffffff;--text:#172033;--muted:#667085;
+    --line:#e6eaf0;--accent:#3157d5;--accent2:#eef2ff;--danger:#b42318;
+    --shadow:0 10px 30px rgba(31,42,68,.08);
+  }
+  *{box-sizing:border-box}
+  body{margin:0;font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:var(--bg);color:var(--text)}
+  .wrap{max-width:1100px;margin:0 auto;padding:32px 20px 60px}
+  .hero{background:linear-gradient(135deg,#253b80,#3157d5);color:white;border-radius:22px;padding:30px;box-shadow:var(--shadow)}
+  .hero h1{margin:0 0 8px;font-size:clamp(28px,4vw,42px);letter-spacing:-.03em}
+  .hero p{margin:0;color:#e8ecff;max-width:760px;line-height:1.55}
+  .grid{display:grid;grid-template-columns:1fr;gap:18px;margin-top:20px}
+  @media(min-width:850px){.grid{grid-template-columns:360px 1fr}}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:22px;box-shadow:var(--shadow)}
+  label{display:block;font-weight:700;margin-bottom:8px}
+  input[type=date]{width:100%;padding:13px 14px;font:inherit;border:1px solid #cfd5df;border-radius:11px;background:white;color:var(--text);outline:none}
+  input[type=date]:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(49,87,213,.12)}
+  .hint{font-size:13px;color:var(--muted);line-height:1.45;margin-top:9px}
+  .error{display:none;margin-top:14px;padding:12px 13px;border-radius:10px;background:#fff1f0;color:var(--danger);font-size:14px;line-height:1.45}
+  .actions{display:flex;gap:9px;flex-wrap:wrap;margin-top:16px}
+  button{appearance:none;border:0;border-radius:10px;padding:11px 14px;font:inherit;font-weight:700;cursor:pointer}
+  .primary{background:var(--accent);color:white}
+  .secondary{background:#eef1f6;color:#25324b}
+  .results-title{display:flex;align-items:flex-start;justify-content:space-between;gap:14px;margin-bottom:14px}
+  .results-title h2{margin:0;font-size:22px}
+  .date-chip{font-size:13px;background:var(--accent2);color:#2944a3;border-radius:999px;padding:7px 10px;white-space:nowrap}
+  .results{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+  @media(max-width:560px){.results{grid-template-columns:1fr}}
+  .result{position:relative;border:1px solid var(--line);border-radius:14px;padding:16px 48px 16px 16px;background:#fbfcff}
+  .copy-icon{position:absolute;right:10px;top:10px;width:30px;height:30px;padding:0;border-radius:8px;background:#eef1f6;color:#475467;display:flex;align-items:center;justify-content:center}
+  .copy-icon:hover{background:#e2e7f0;color:#25324b}
+  .copy-icon svg{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+  .copy-icon.copied{background:#eaf7ee;color:#177245}
+  .result .kicker{font-size:12px;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);font-weight:800}
+  .result .name{font-size:14px;color:#465267;margin-top:4px}
+  .result .date{font-size:24px;font-weight:800;margin-top:7px;letter-spacing:-.02em}
+  .empty{color:var(--muted);padding:30px 4px;text-align:center;line-height:1.55}
+  .table-card{margin-top:20px}
+  .table-head{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:13px}
+  .table-head h2{font-size:20px;margin:0}
+  .table-wrap{overflow:auto;max-height:470px;border:1px solid var(--line);border-radius:12px}
+  table{border-collapse:collapse;width:100%;font-size:13px;background:white}
+  th,td{padding:10px 12px;border-bottom:1px solid var(--line);text-align:left;white-space:nowrap}
+  th{position:sticky;top:0;background:#f8f9fc;z-index:1;color:#475467}
+  tr.active td{background:#eef2ff;font-weight:700}
+  .footer{color:var(--muted);font-size:12px;text-align:center;margin-top:22px}
+  .hidden{display:none}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <section class="hero">
+    <h1>School Timeline Calculator</h1>
+    <p>2026–2027 school year. Choose a valid school day when a referral was received to see the 5th, 20th, 35th, and 40th school-day deadlines.</p>
+  </section>
+
+  <div class="grid">
+    <section class="card">
+      <label for="referralDate">Date Referral Received</label>
+      <input id="referralDate" type="date" min="2026-09-01" max="2027-06-17" />
+      <div class="hint">Only school days in the approved 2026–2027 calendar are accepted. Weekends, holidays, and other non-school days are excluded.</div>
+      <div id="error" class="error"></div>
+      <div class="actions">
+        <button class="primary" id="calculateBtn">Calculate timeline</button>
+        <button class="secondary" id="clearBtn">Clear</button>
+      </div>
+    </section>
+
+    <section class="card">
+      <div id="empty" class="empty">Select a referral date to calculate the timeline.</div>
+      <div id="resultPanel" class="hidden">
+        <div class="results-title">
+          <h2>Timeline deadlines</h2>
+          <span class="date-chip" id="referralChip"></span>
+        </div>
+        <div class="results">
+          <div class="result" data-copy-target="d5">
+            <button class="copy-icon" type="button" aria-label="Copy date" title="Copy date"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="9" y="9" width="11" height="11" rx="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg></button>
+            <div class="kicker">5th School Day</div>
+            <div class="name">Timeline Milestone</div>
+            <div class="date" id="d5"></div>
+          </div>
+          <div class="result" data-copy-target="d20">
+            <button class="copy-icon" type="button" aria-label="Copy date" title="Copy date"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="9" y="9" width="11" height="11" rx="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg></button>
+            <div class="kicker">20th School Day</div>
+            <div class="name">Referral Meeting Due</div>
+            <div class="date" id="d20"></div>
+          </div>
+          <div class="result" data-copy-target="d35">
+            <button class="copy-icon" type="button" aria-label="Copy date" title="Copy date"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="9" y="9" width="11" height="11" rx="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg></button>
+            <div class="kicker">35th School Day</div>
+            <div class="name">Draft Due</div>
+            <div class="date" id="d35"></div>
+          </div>
+          <div class="result" data-copy-target="d40">
+            <button class="copy-icon" type="button" aria-label="Copy date" title="Copy date"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="9" y="9" width="11" height="11" rx="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg></button>
+            <div class="kicker">40th School Day</div>
+            <div class="name">Meeting Due</div>
+            <div class="date" id="d40"></div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <section class="card table-card">
+    <div class="table-head">
+      <h2>Full 2026–2027 lookup table</h2>
+      <button class="secondary" id="toggleTable">Show table</button>
+    </div>
+    <div id="tableWrap" class="table-wrap hidden">
+      <table>
+        <thead>
+          <tr>
+            <th>Referral Received</th><th>5th Day</th><th>20th Day</th><th>35th Day</th><th>40th Day</th>
+          </tr>
+        </thead>
+        <tbody id="tbody"></tbody>
+      </table>
+    </div>
+  </section>
+  <div class="footer">Built from the 2026–2027 school-day timeline dataset.</div>
+</div>
+
+<script>
+const DATA = [{"referral":"9/1/2026","day20":"9/30/2026","day30":"10/14/2026","day35":"10/21/2026","day40":"10/28/2026"},{"referral":"9/2/2026","day20":"10/1/2026","day30":"10/15/2026","day35":"10/22/2026","day40":"10/29/2026"},{"referral":"9/3/2026","day20":"10/2/2026","day30":"10/16/2026","day35":"10/23/2026","day40":"10/30/2026"},{"referral":"9/4/2026","day20":"10/5/2026","day30":"10/19/2026","day35":"10/26/2026","day40":"11/2/2026"},{"referral":"9/8/2026","day20":"10/6/2026","day30":"10/20/2026","day35":"10/27/2026","day40":"11/3/2026"},{"referral":"9/9/2026","day20":"10/7/2026","day30":"10/21/2026","day35":"10/28/2026","day40":"11/4/2026"},{"referral":"9/10/2026","day20":"10/8/2026","day30":"10/22/2026","day35":"10/29/2026","day40":"11/5/2026"},{"referral":"9/11/2026","day20":"10/9/2026","day30":"10/23/2026","day35":"10/30/2026","day40":"11/6/2026"},{"referral":"9/14/2026","day20":"10/12/2026","day30":"10/26/2026","day35":"11/2/2026","day40":"11/9/2026"},{"referral":"9/15/2026","day20":"10/13/2026","day30":"10/27/2026","day35":"11/3/2026","day40":"11/10/2026"},{"referral":"9/16/2026","day20":"10/14/2026","day30":"10/28/2026","day35":"11/4/2026","day40":"11/12/2026"},{"referral":"9/17/2026","day20":"10/15/2026","day30":"10/29/2026","day35":"11/5/2026","day40":"11/13/2026"},{"referral":"9/18/2026","day20":"10/16/2026","day30":"10/30/2026","day35":"11/6/2026","day40":"11/16/2026"},{"referral":"9/21/2026","day20":"10/19/2026","day30":"11/2/2026","day35":"11/9/2026","day40":"11/17/2026"},{"referral":"9/22/2026","day20":"10/20/2026","day30":"11/3/2026","day35":"11/10/2026","day40":"11/18/2026"},{"referral":"9/23/2026","day20":"10/21/2026","day30":"11/4/2026","day35":"11/12/2026","day40":"11/19/2026"},{"referral":"9/24/2026","day20":"10/22/2026","day30":"11/5/2026","day35":"11/13/2026","day40":"11/20/2026"},{"referral":"9/25/2026","day20":"10/23/2026","day30":"11/6/2026","day35":"11/16/2026","day40":"11/23/2026"},{"referral":"9/28/2026","day20":"10/26/2026","day30":"11/9/2026","day35":"11/17/2026","day40":"11/24/2026"},{"referral":"9/29/2026","day20":"10/27/2026","day30":"11/10/2026","day35":"11/18/2026","day40":"11/25/2026"},{"referral":"9/30/2026","day20":"10/28/2026","day30":"11/12/2026","day35":"11/19/2026","day40":"11/30/2026"},{"referral":"10/1/2026","day20":"10/29/2026","day30":"11/13/2026","day35":"11/20/2026","day40":"12/1/2026"},{"referral":"10/2/2026","day20":"10/30/2026","day30":"11/16/2026","day35":"11/23/2026","day40":"12/2/2026"},{"referral":"10/5/2026","day20":"11/2/2026","day30":"11/17/2026","day35":"11/24/2026","day40":"12/3/2026"},{"referral":"10/6/2026","day20":"11/3/2026","day30":"11/18/2026","day35":"11/25/2026","day40":"12/4/2026"},{"referral":"10/7/2026","day20":"11/4/2026","day30":"11/19/2026","day35":"11/30/2026","day40":"12/7/2026"},{"referral":"10/8/2026","day20":"11/5/2026","day30":"11/20/2026","day35":"12/1/2026","day40":"12/8/2026"},{"referral":"10/9/2026","day20":"11/6/2026","day30":"11/23/2026","day35":"12/2/2026","day40":"12/9/2026"},{"referral":"10/12/2026","day20":"11/9/2026","day30":"11/24/2026","day35":"12/3/2026","day40":"12/10/2026"},{"referral":"10/13/2026","day20":"11/10/2026","day30":"11/25/2026","day35":"12/4/2026","day40":"12/11/2026"},{"referral":"10/14/2026","day20":"11/12/2026","day30":"11/30/2026","day35":"12/7/2026","day40":"12/14/2026"},{"referral":"10/15/2026","day20":"11/13/2026","day30":"12/1/2026","day35":"12/8/2026","day40":"12/15/2026"},{"referral":"10/16/2026","day20":"11/16/2026","day30":"12/2/2026","day35":"12/9/2026","day40":"12/16/2026"},{"referral":"10/19/2026","day20":"11/17/2026","day30":"12/3/2026","day35":"12/10/2026","day40":"12/17/2026"},{"referral":"10/20/2026","day20":"11/18/2026","day30":"12/4/2026","day35":"12/11/2026","day40":"12/18/2026"},{"referral":"10/21/2026","day20":"11/19/2026","day30":"12/7/2026","day35":"12/14/2026","day40":"1/4/2027"},{"referral":"10/22/2026","day20":"11/20/2026","day30":"12/8/2026","day35":"12/15/2026","day40":"1/5/2027"},{"referral":"10/23/2026","day20":"11/23/2026","day30":"12/9/2026","day35":"12/16/2026","day40":"1/6/2027"},{"referral":"10/26/2026","day20":"11/24/2026","day30":"12/10/2026","day35":"12/17/2026","day40":"1/7/2027"},{"referral":"10/27/2026","day20":"11/25/2026","day30":"12/11/2026","day35":"12/18/2026","day40":"1/8/2027"},{"referral":"10/28/2026","day20":"11/30/2026","day30":"12/14/2026","day35":"1/4/2027","day40":"1/11/2027"},{"referral":"10/29/2026","day20":"12/1/2026","day30":"12/15/2026","day35":"1/5/2027","day40":"1/12/2027"},{"referral":"10/30/2026","day20":"12/2/2026","day30":"12/16/2026","day35":"1/6/2027","day40":"1/13/2027"},{"referral":"11/2/2026","day20":"12/3/2026","day30":"12/17/2026","day35":"1/7/2027","day40":"1/14/2027"},{"referral":"11/3/2026","day20":"12/4/2026","day30":"12/18/2026","day35":"1/8/2027","day40":"1/15/2027"},{"referral":"11/4/2026","day20":"12/7/2026","day30":"1/4/2027","day35":"1/11/2027","day40":"1/19/2027"},{"referral":"11/5/2026","day20":"12/8/2026","day30":"1/5/2027","day35":"1/12/2027","day40":"1/20/2027"},{"referral":"11/6/2026","day20":"12/9/2026","day30":"1/6/2027","day35":"1/13/2027","day40":"1/21/2027"},{"referral":"11/9/2026","day20":"12/10/2026","day30":"1/7/2027","day35":"1/14/2027","day40":"1/22/2027"},{"referral":"11/10/2026","day20":"12/11/2026","day30":"1/8/2027","day35":"1/15/2027","day40":"1/26/2027"},{"referral":"11/12/2026","day20":"12/14/2026","day30":"1/11/2027","day35":"1/19/2027","day40":"1/27/2027"},{"referral":"11/13/2026","day20":"12/15/2026","day30":"1/12/2027","day35":"1/20/2027","day40":"1/28/2027"},{"referral":"11/16/2026","day20":"12/16/2026","day30":"1/13/2027","day35":"1/21/2027","day40":"1/29/2027"},{"referral":"11/17/2026","day20":"12/17/2026","day30":"1/14/2027","day35":"1/22/2027","day40":"2/1/2027"},{"referral":"11/18/2026","day20":"12/18/2026","day30":"1/15/2027","day35":"1/26/2027","day40":"2/2/2027"},{"referral":"11/19/2026","day20":"1/4/2027","day30":"1/19/2027","day35":"1/27/2027","day40":"2/3/2027"},{"referral":"11/20/2026","day20":"1/5/2027","day30":"1/20/2027","day35":"1/28/2027","day40":"2/4/2027"},{"referral":"11/23/2026","day20":"1/6/2027","day30":"1/21/2027","day35":"1/29/2027","day40":"2/5/2027"},{"referral":"11/24/2026","day20":"1/7/2027","day30":"1/22/2027","day35":"2/1/2027","day40":"2/8/2027"},{"referral":"11/25/2026","day20":"1/8/2027","day30":"1/26/2027","day35":"2/2/2027","day40":"2/9/2027"},{"referral":"11/30/2026","day20":"1/11/2027","day30":"1/27/2027","day35":"2/3/2027","day40":"2/10/2027"},{"referral":"12/1/2026","day20":"1/12/2027","day30":"1/28/2027","day35":"2/4/2027","day40":"2/11/2027"},{"referral":"12/2/2026","day20":"1/13/2027","day30":"1/29/2027","day35":"2/5/2027","day40":"2/12/2027"},{"referral":"12/3/2026","day20":"1/14/2027","day30":"2/1/2027","day35":"2/8/2027","day40":"2/22/2027"},{"referral":"12/4/2026","day20":"1/15/2027","day30":"2/2/2027","day35":"2/9/2027","day40":"2/23/2027"},{"referral":"12/7/2026","day20":"1/19/2027","day30":"2/3/2027","day35":"2/10/2027","day40":"2/24/2027"},{"referral":"12/8/2026","day20":"1/20/2027","day30":"2/4/2027","day35":"2/11/2027","day40":"2/25/2027"},{"referral":"12/9/2026","day20":"1/21/2027","day30":"2/5/2027","day35":"2/12/2027","day40":"2/26/2027"},{"referral":"12/10/2026","day20":"1/22/2027","day30":"2/8/2027","day35":"2/22/2027","day40":"3/1/2027"},{"referral":"12/11/2026","day20":"1/26/2027","day30":"2/9/2027","day35":"2/23/2027","day40":"3/2/2027"},{"referral":"12/14/2026","day20":"1/27/2027","day30":"2/10/2027","day35":"2/24/2027","day40":"3/3/2027"},{"referral":"12/15/2026","day20":"1/28/2027","day30":"2/11/2027","day35":"2/25/2027","day40":"3/4/2027"},{"referral":"12/16/2026","day20":"1/29/2027","day30":"2/12/2027","day35":"2/26/2027","day40":"3/5/2027"},{"referral":"12/17/2026","day20":"2/1/2027","day30":"2/22/2027","day35":"3/1/2027","day40":"3/8/2027"},{"referral":"12/18/2026","day20":"2/2/2027","day30":"2/23/2027","day35":"3/2/2027","day40":"3/9/2027"},{"referral":"1/4/2027","day20":"2/3/2027","day30":"2/24/2027","day35":"3/3/2027","day40":"3/10/2027"},{"referral":"1/5/2027","day20":"2/4/2027","day30":"2/25/2027","day35":"3/4/2027","day40":"3/11/2027"},{"referral":"1/6/2027","day20":"2/5/2027","day30":"2/26/2027","day35":"3/5/2027","day40":"3/12/2027"},{"referral":"1/7/2027","day20":"2/8/2027","day30":"3/1/2027","day35":"3/8/2027","day40":"3/15/2027"},{"referral":"1/8/2027","day20":"2/9/2027","day30":"3/2/2027","day35":"3/9/2027","day40":"3/16/2027"},{"referral":"1/11/2027","day20":"2/10/2027","day30":"3/3/2027","day35":"3/10/2027","day40":"3/17/2027"},{"referral":"1/12/2027","day20":"2/11/2027","day30":"3/4/2027","day35":"3/11/2027","day40":"3/18/2027"},{"referral":"1/13/2027","day20":"2/12/2027","day30":"3/5/2027","day35":"3/12/2027","day40":"3/19/2027"},{"referral":"1/14/2027","day20":"2/22/2027","day30":"3/8/2027","day35":"3/15/2027","day40":"3/22/2027"},{"referral":"1/15/2027","day20":"2/23/2027","day30":"3/9/2027","day35":"3/16/2027","day40":"3/23/2027"},{"referral":"1/19/2027","day20":"2/24/2027","day30":"3/10/2027","day35":"3/17/2027","day40":"3/24/2027"},{"referral":"1/20/2027","day20":"2/25/2027","day30":"3/11/2027","day35":"3/18/2027","day40":"3/25/2027"},{"referral":"1/21/2027","day20":"2/26/2027","day30":"3/12/2027","day35":"3/19/2027","day40":"3/26/2027"},{"referral":"1/22/2027","day20":"3/1/2027","day30":"3/15/2027","day35":"3/22/2027","day40":"3/29/2027"},{"referral":"1/26/2027","day20":"3/2/2027","day30":"3/16/2027","day35":"3/23/2027","day40":"3/30/2027"},{"referral":"1/27/2027","day20":"3/3/2027","day30":"3/17/2027","day35":"3/24/2027","day40":"3/31/2027"},{"referral":"1/28/2027","day20":"3/4/2027","day30":"3/18/2027","day35":"3/25/2027","day40":"4/1/2027"},{"referral":"1/29/2027","day20":"3/5/2027","day30":"3/19/2027","day35":"3/26/2027","day40":"4/2/2027"},{"referral":"2/1/2027","day20":"3/8/2027","day30":"3/22/2027","day35":"3/29/2027","day40":"4/12/2027"},{"referral":"2/2/2027","day20":"3/9/2027","day30":"3/23/2027","day35":"3/30/2027","day40":"4/13/2027"},{"referral":"2/3/2027","day20":"3/10/2027","day30":"3/24/2027","day35":"3/31/2027","day40":"4/14/2027"},{"referral":"2/4/2027","day20":"3/11/2027","day30":"3/25/2027","day35":"4/1/2027","day40":"4/15/2027"},{"referral":"2/5/2027","day20":"3/12/2027","day30":"3/26/2027","day35":"4/2/2027","day40":"4/16/2027"},{"referral":"2/8/2027","day20":"3/15/2027","day30":"3/29/2027","day35":"4/12/2027","day40":"4/19/2027"},{"referral":"2/9/2027","day20":"3/16/2027","day30":"3/30/2027","day35":"4/13/2027","day40":"4/20/2027"},{"referral":"2/10/2027","day20":"3/17/2027","day30":"3/31/2027","day35":"4/14/2027","day40":"4/21/2027"},{"referral":"2/11/2027","day20":"3/18/2027","day30":"4/1/2027","day35":"4/15/2027","day40":"4/22/2027"},{"referral":"2/12/2027","day20":"3/19/2027","day30":"4/2/2027","day35":"4/16/2027","day40":"4/23/2027"},{"referral":"2/22/2027","day20":"3/22/2027","day30":"4/12/2027","day35":"4/19/2027","day40":"4/26/2027"},{"referral":"2/23/2027","day20":"3/23/2027","day30":"4/13/2027","day35":"4/20/2027","day40":"4/27/2027"},{"referral":"2/24/2027","day20":"3/24/2027","day30":"4/14/2027","day35":"4/21/2027","day40":"4/28/2027"},{"referral":"2/25/2027","day20":"3/25/2027","day30":"4/15/2027","day35":"4/22/2027","day40":"4/29/2027"},{"referral":"2/26/2027","day20":"3/26/2027","day30":"4/16/2027","day35":"4/23/2027","day40":"4/30/2027"},{"referral":"3/1/2027","day20":"3/29/2027","day30":"4/19/2027","day35":"4/26/2027","day40":"5/3/2027"},{"referral":"3/2/2027","day20":"3/30/2027","day30":"4/20/2027","day35":"4/27/2027","day40":"5/4/2027"},{"referral":"3/3/2027","day20":"3/31/2027","day30":"4/21/2027","day35":"4/28/2027","day40":"5/5/2027"},{"referral":"3/4/2027","day20":"4/1/2027","day30":"4/22/2027","day35":"4/29/2027","day40":"5/6/2027"},{"referral":"3/5/2027","day20":"4/2/2027","day30":"4/23/2027","day35":"4/30/2027","day40":"5/7/2027"},{"referral":"3/8/2027","day20":"4/12/2027","day30":"4/26/2027","day35":"5/3/2027","day40":"5/10/2027"},{"referral":"3/9/2027","day20":"4/13/2027","day30":"4/27/2027","day35":"5/4/2027","day40":"5/11/2027"},{"referral":"3/10/2027","day20":"4/14/2027","day30":"4/28/2027","day35":"5/5/2027","day40":"5/12/2027"},{"referral":"3/11/2027","day20":"4/15/2027","day30":"4/29/2027","day35":"5/6/2027","day40":"5/13/2027"},{"referral":"3/12/2027","day20":"4/16/2027","day30":"4/30/2027","day35":"5/7/2027","day40":"5/14/2027"},{"referral":"3/15/2027","day20":"4/19/2027","day30":"5/3/2027","day35":"5/10/2027","day40":"5/17/2027"},{"referral":"3/16/2027","day20":"4/20/2027","day30":"5/4/2027","day35":"5/11/2027","day40":"5/18/2027"},{"referral":"3/17/2027","day20":"4/21/2027","day30":"5/5/2027","day35":"5/12/2027","day40":"5/19/2027"},{"referral":"3/18/2027","day20":"4/22/2027","day30":"5/6/2027","day35":"5/13/2027","day40":"5/20/2027"},{"referral":"3/19/2027","day20":"4/23/2027","day30":"5/7/2027","day35":"5/14/2027","day40":"5/21/2027"},{"referral":"3/22/2027","day20":"4/26/2027","day30":"5/10/2027","day35":"5/17/2027","day40":"5/24/2027"},{"referral":"3/23/2027","day20":"4/27/2027","day30":"5/11/2027","day35":"5/18/2027","day40":"5/25/2027"},{"referral":"3/24/2027","day20":"4/28/2027","day30":"5/12/2027","day35":"5/19/2027","day40":"5/26/2027"},{"referral":"3/25/2027","day20":"4/29/2027","day30":"5/13/2027","day35":"5/20/2027","day40":"5/27/2027"},{"referral":"3/26/2027","day20":"4/30/2027","day30":"5/14/2027","day35":"5/21/2027","day40":"5/28/2027"},{"referral":"3/29/2027","day20":"5/3/2027","day30":"5/17/2027","day35":"5/24/2027","day40":"6/1/2027"},{"referral":"3/30/2027","day20":"5/4/2027","day30":"5/18/2027","day35":"5/25/2027","day40":"6/2/2027"},{"referral":"3/31/2027","day20":"5/5/2027","day30":"5/19/2027","day35":"5/26/2027","day40":"6/3/2027"},{"referral":"4/1/2027","day20":"5/6/2027","day30":"5/20/2027","day35":"5/27/2027","day40":"6/4/2027"},{"referral":"4/2/2027","day20":"5/7/2027","day30":"5/21/2027","day35":"5/28/2027","day40":"6/7/2027"},{"referral":"4/12/2027","day20":"5/10/2027","day30":"5/24/2027","day35":"6/1/2027","day40":"6/8/2027"},{"referral":"4/13/2027","day20":"5/11/2027","day30":"5/25/2027","day35":"6/2/2027","day40":"6/9/2027"},{"referral":"4/14/2027","day20":"5/12/2027","day30":"5/26/2027","day35":"6/3/2027","day40":"6/10/2027"},{"referral":"4/15/2027","day20":"5/13/2027","day30":"5/27/2027","day35":"6/4/2027","day40":"6/11/2027"},{"referral":"4/16/2027","day20":"5/14/2027","day30":"5/28/2027","day35":"6/7/2027","day40":"6/14/2027"},{"referral":"4/19/2027","day20":"5/17/2027","day30":"6/1/2027","day35":"6/8/2027","day40":"6/15/2027"},{"referral":"4/20/2027","day20":"5/18/2027","day30":"6/2/2027","day35":"6/9/2027","day40":"6/16/2027"},{"referral":"4/21/2027","day20":"5/19/2027","day30":"6/3/2027","day35":"6/10/2027","day40":"6/17/2027"},{"referral":"4/22/2027","day20":"5/20/2027","day30":"6/4/2027","day35":"6/11/2027","day40":"8/31/2027"},{"referral":"4/23/2027","day20":"5/21/2027","day30":"6/7/2027","day35":"6/14/2027","day40":"9/1/2027"},{"referral":"4/26/2027","day20":"5/24/2027","day30":"6/8/2027","day35":"6/15/2027","day40":"9/2/2027"},{"referral":"4/27/2027","day20":"5/25/2027","day30":"6/9/2027","day35":"6/16/2027","day40":"9/3/2027"},{"referral":"4/28/2027","day20":"5/26/2027","day30":"6/10/2027","day35":"6/17/2027","day40":"9/7/2027"},{"referral":"4/29/2027","day20":"5/27/2027","day30":"6/11/2027","day35":"8/31/2027","day40":"9/8/2027"},{"referral":"4/30/2027","day20":"5/28/2027","day30":"6/14/2027","day35":"9/1/2027","day40":"9/9/2027"},{"referral":"5/3/2027","day20":"6/1/2027","day30":"6/15/2027","day35":"9/2/2027","day40":"9/10/2027"},{"referral":"5/4/2027","day20":"6/2/2027","day30":"6/16/2027","day35":"9/3/2027","day40":"9/13/2027"},{"referral":"5/5/2027","day20":"6/3/2027","day30":"6/17/2027","day35":"9/7/2027","day40":"9/14/2027"},{"referral":"5/6/2027","day20":"6/4/2027","day30":"8/31/2027","day35":"9/8/2027","day40":"9/15/2027"},{"referral":"5/7/2027","day20":"6/7/2027","day30":"9/1/2027","day35":"9/9/2027","day40":"9/16/2027"},{"referral":"5/10/2027","day20":"6/8/2027","day30":"9/2/2027","day35":"9/10/2027","day40":"9/17/2027"},{"referral":"5/11/2027","day20":"6/9/2027","day30":"9/3/2027","day35":"9/13/2027","day40":"9/20/2027"},{"referral":"5/12/2027","day20":"6/10/2027","day30":"9/7/2027","day35":"9/14/2027","day40":"9/21/2027"},{"referral":"5/13/2027","day20":"6/11/2027","day30":"9/8/2027","day35":"9/15/2027","day40":"9/22/2027"},{"referral":"5/14/2027","day20":"6/14/2027","day30":"9/9/2027","day35":"9/16/2027","day40":"9/23/2027"},{"referral":"5/17/2027","day20":"6/15/2027","day30":"9/10/2027","day35":"9/17/2027","day40":"9/24/2027"},{"referral":"5/18/2027","day20":"6/16/2027","day30":"9/13/2027","day35":"9/20/2027","day40":"9/27/2027"},{"referral":"5/19/2027","day20":"6/17/2027","day30":"9/14/2027","day35":"9/21/2027","day40":"9/28/2027"},{"referral":"5/20/2027","day20":"8/31/2027","day30":"9/15/2027","day35":"9/22/2027","day40":"9/29/2027"},{"referral":"5/21/2027","day20":"9/1/2027","day30":"9/16/2027","day35":"9/23/2027","day40":"9/30/2027"},{"referral":"5/24/2027","day20":"9/2/2027","day30":"9/17/2027","day35":"9/24/2027","day40":"10/1/2027"},{"referral":"5/25/2027","day20":"9/3/2027","day30":"9/20/2027","day35":"9/27/2027","day40":"10/4/2027"},{"referral":"5/26/2027","day20":"9/7/2027","day30":"9/21/2027","day35":"9/28/2027","day40":"10/5/2027"},{"referral":"5/27/2027","day20":"9/8/2027","day30":"9/22/2027","day35":"9/29/2027","day40":"10/6/2027"},{"referral":"5/28/2027","day20":"9/9/2027","day30":"9/23/2027","day35":"9/30/2027","day40":"10/7/2027"},{"referral":"6/1/2027","day20":"9/10/2027","day30":"9/24/2027","day35":"10/1/2027","day40":"10/8/2027"},{"referral":"6/2/2027","day20":"9/13/2027","day30":"9/27/2027","day35":"10/4/2027","day40":"10/11/2027"},{"referral":"6/3/2027","day20":"9/14/2027","day30":"9/28/2027","day35":"10/5/2027","day40":"10/12/2027"},{"referral":"6/4/2027","day20":"9/15/2027","day30":"9/29/2027","day35":"10/6/2027","day40":"10/13/2027"},{"referral":"6/7/2027","day20":"9/16/2027","day30":"9/30/2027","day35":"10/7/2027","day40":"10/14/2027"},{"referral":"6/8/2027","day20":"9/17/2027","day30":"10/1/2027","day35":"10/8/2027","day40":"10/15/2027"},{"referral":"6/9/2027","day20":"9/20/2027","day30":"10/4/2027","day35":"10/11/2027","day40":"10/18/2027"},{"referral":"6/10/2027","day20":"9/21/2027","day30":"10/5/2027","day35":"10/12/2027","day40":"10/19/2027"},{"referral":"6/11/2027","day20":"9/22/2027","day30":"10/6/2027","day35":"10/13/2027","day40":"10/20/2027"},{"referral":"6/14/2027","day20":"9/23/2027","day30":"10/7/2027","day35":"10/14/2027","day40":"10/21/2027"},{"referral":"6/15/2027","day20":"9/24/2027","day30":"10/8/2027","day35":"10/15/2027","day40":"10/22/2027"},{"referral":"6/16/2027","day20":"9/27/2027","day30":"10/11/2027","day35":"10/18/2027","day40":"10/25/2027"},{"referral":"6/17/2027","day20":"9/28/2027","day30":"10/12/2027","day35":"10/19/2027","day40":"10/26/2027"}];
+const byDate = new Map(DATA.map(r => [toISO(r.referral), r]));
+let selectedISO = "";
+
+function parseMDY(s){
+  const [m,d,y] = s.split("/").map(Number);
+  return new Date(y,m-1,d);
+}
+function toISO(s){
+  const dt=parseMDY(s);
+  return `${dt.getFullYear()}-${String(dt.getMonth()+1).padStart(2,"0")}-${String(dt.getDate()).padStart(2,"0")}`;
+}
+function pretty(s){
+  const dt=parseMDY(s);
+  return dt.toLocaleDateString(undefined,{weekday:"short",month:"short",day:"numeric",year:"numeric"});
+}
+function nearestSchoolDays(iso){
+  const t = new Date(iso+"T12:00:00").getTime();
+  const arr = DATA.map(r => ({r,t:parseMDY(r.referral).getTime()}));
+  let before=null, after=null;
+  for(const x of arr){
+    if(x.t<t) before=x.r;
+    if(x.t>t){after=x.r;break;}
+  }
+  return {before,after};
+}
+
+function get5thSchoolDay(row){
+  const idx = DATA.indexOf(row);
+  if(idx >= 0 && idx + 5 < DATA.length) return DATA[idx + 5].referral;
+
+  // The current lookup table ends on 6/17/2027. For the final few referral dates,
+  // infer the next school days from the already-embedded following-year deadline data.
+  const future = [...new Set(DATA.flatMap(r => [r.day20, r.day35, r.day40]))]
+    .map(s => ({s, d: parseMDY(s)}))
+    .filter(x => x.d > parseMDY(DATA[DATA.length-1].referral))
+    .sort((a,b) => a.d-b.d)
+    .map(x => x.s);
+  const schoolDays = DATA.map(r => r.referral).concat(future);
+  const fullIdx = schoolDays.indexOf(row.referral);
+  return schoolDays[fullIdx + 5] || "";
+}
+
+function calculate(){
+  const iso=document.getElementById("referralDate").value;
+  const error=document.getElementById("error");
+  error.style.display="none";
+  if(!iso){
+    error.textContent="Choose a referral date first.";
+    error.style.display="block";
+    return;
+  }
+  const row=byDate.get(iso);
+  if(!row){
+    const near=nearestSchoolDays(iso);
+    let msg="That date is not a school day in this calendar.";
+    if(near.before || near.after){
+      const choices=[];
+      if(near.before) choices.push(`previous: ${pretty(near.before.referral)}`);
+      if(near.after) choices.push(`next: ${pretty(near.after.referral)}`);
+      msg += " Nearest valid dates — " + choices.join("; ") + ".";
+    }
+    error.textContent=msg;
+    error.style.display="block";
+    document.getElementById("empty").classList.remove("hidden");
+    document.getElementById("resultPanel").classList.add("hidden");
+    highlight("");
+    return;
+  }
+  selectedISO=iso;
+  document.getElementById("empty").classList.add("hidden");
+  document.getElementById("resultPanel").classList.remove("hidden");
+  document.getElementById("referralChip").textContent="Referral: "+pretty(row.referral);
+  document.getElementById("d5").textContent=pretty(get5thSchoolDay(row));
+  document.getElementById("d20").textContent=pretty(row.day20);
+  document.getElementById("d35").textContent=pretty(row.day35);
+  document.getElementById("d40").textContent=pretty(row.day40);
+  highlight(iso);
+}
+function highlight(iso){
+  document.querySelectorAll("#tbody tr").forEach(tr=>tr.classList.toggle("active",tr.dataset.iso===iso));
+}
+function clearAll(){
+  document.getElementById("referralDate").value="";
+  document.getElementById("error").style.display="none";
+  document.getElementById("empty").classList.remove("hidden");
+  document.getElementById("resultPanel").classList.add("hidden");
+  selectedISO="";
+  highlight("");
+}
+function buildTable(){
+  const tb=document.getElementById("tbody");
+  tb.innerHTML=DATA.map(r=>`<tr data-iso="${toISO(r.referral)}"><td>${r.referral}</td><td>${get5thSchoolDay(r)}</td><td>${r.day20}</td><td>${r.day35}</td><td>${r.day40}</td></tr>`).join("");
+  tb.querySelectorAll("tr").forEach(tr=>tr.addEventListener("click",()=>{
+    document.getElementById("referralDate").value=tr.dataset.iso;
+    calculate();
+    window.scrollTo({top:0,behavior:"smooth"});
+  }));
+}
+document.getElementById("calculateBtn").addEventListener("click",calculate);
+document.getElementById("referralDate").addEventListener("change",calculate);
+document.getElementById("clearBtn").addEventListener("click",clearAll);
+document.getElementById("toggleTable").addEventListener("click",()=>{
+  const w=document.getElementById("tableWrap");
+  const hidden=w.classList.toggle("hidden");
+  document.getElementById("toggleTable").textContent=hidden?"Show table":"Hide table";
+});
+document.querySelectorAll(".copy-icon").forEach(btn=>{
+  btn.addEventListener("click",async()=>{
+    const card=btn.closest(".result");
+    const target=document.getElementById(card.dataset.copyTarget);
+    const value=target ? target.textContent.trim() : "";
+    if(!value) return;
+    try{
+      await navigator.clipboard.writeText(value);
+      btn.classList.add("copied");
+      const oldTitle=btn.title;
+      btn.title="Copied!";
+      setTimeout(()=>{btn.classList.remove("copied");btn.title=oldTitle;},1000);
+    }catch(e){
+      const ta=document.createElement("textarea");
+      ta.value=value; document.body.appendChild(ta); ta.select();
+      document.execCommand("copy"); ta.remove();
+    }
+  });
+});
+buildTable();
+</script>
+</body>
+</html>
